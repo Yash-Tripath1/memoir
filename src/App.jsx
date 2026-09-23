@@ -2,10 +2,6 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
-<<<<<<< HEAD
-=======
-import ProtectedRoute from './components/ProtectedRoute';
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -39,13 +35,8 @@ export default function App() {
       <div className="flex items-center justify-center h-screen bg-[#fdf8f0]">
         <div className="text-center">
           <div className="text-4xl mb-4 animate-bounce">📖</div>
-<<<<<<< HEAD
           <p className="text-memoir-400 font-medium">Loading Memoir v4...</p>
           <p className="text-xs text-memoir-300 mt-1">Free • No login needed • Privacy-first</p>
-=======
-          <p className="text-memoir-400 font-medium">Loading Memoir v3...</p>
-          <p className="text-xs text-memoir-300 mt-1">Privacy-first • RAM only • Fixing bugs</p>
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
         </div>
       </div>
     );
@@ -55,7 +46,6 @@ export default function App() {
     <ErrorBoundary>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-<<<<<<< HEAD
           {/* Auth routes - optional, for saving */}
           <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
           <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
@@ -67,17 +57,6 @@ export default function App() {
           <Route path="/starred" element={<Layout><PageTransition><Starred /></PageTransition></Layout>} />
           <Route path="/scrapbooks" element={<Layout><PageTransition><Scrapbooks /></PageTransition></Layout>} />
           <Route path="/canvas/:scrapbookId" element={<ErrorBoundary><Canvas /></ErrorBoundary>} />
-=======
-          <Route path="/login" element={user ? <Navigate to="/" /> : <PageTransition><Login /></PageTransition>} />
-          <Route path="/register" element={user ? <Navigate to="/" /> : <PageTransition><Register /></PageTransition>} />
-          <Route path="/forgot-password" element={user ? <Navigate to="/" /> : <PageTransition><ForgotPassword /></PageTransition>} />
-
-          <Route path="/" element={<ProtectedRoute><Layout><PageTransition><Home /></PageTransition></Layout></ProtectedRoute>} />
-          <Route path="/chat/:chatId" element={<ProtectedRoute><Layout><PageTransition><ChatView /></PageTransition></Layout></ProtectedRoute>} />
-          <Route path="/starred" element={<ProtectedRoute><Layout><PageTransition><Starred /></PageTransition></Layout></ProtectedRoute>} />
-          <Route path="/scrapbooks" element={<ProtectedRoute><Layout><PageTransition><Scrapbooks /></PageTransition></Layout></ProtectedRoute>} />
-          <Route path="/canvas/:scrapbookId" element={<ProtectedRoute><ErrorBoundary><Canvas /></ErrorBoundary></ProtectedRoute>} />
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

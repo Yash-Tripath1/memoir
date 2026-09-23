@@ -37,11 +37,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">📖</div>
           <h1 className="text-3xl font-display font-bold text-memoir-800">Memoir</h1>
-<<<<<<< HEAD
           <p className="text-memoir-400 mt-2">Free • No login needed • Privacy-first</p>
-=======
-          <p className="text-memoir-400 mt-2">Your memories, beautifully preserved • v2 • IndexedDB</p>
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
         </div>
 
         <div className="card p-8">
@@ -66,27 +62,14 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Email</label>
-<<<<<<< HEAD
               <div className="relative"><Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" /><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-10" placeholder="you@example.com" required /></div>
-=======
-              <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-10" placeholder="you@example.com" required />
-              </div>
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
             </div>
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Password</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} className="input-field pl-10 pr-10" placeholder="••••••••" required />
-<<<<<<< HEAD
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-=======
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500">
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
               </div>
             </div>
             <button type="submit" className="btn-primary w-full" disabled={loading}>{loading ? 'Signing in...' : 'Sign In & Migrate Guest Data'}</button>
@@ -99,10 +82,7 @@ export default function Login() {
           <div className="mt-6 text-center space-y-2">
             <Link to="/forgot-password" className="text-sm text-memoir-400 hover:text-memoir-600 transition-colors">Forgot password?</Link>
             <p className="text-sm text-memoir-400">Don't have an account? <Link to="/register" className="text-memoir-600 font-medium hover:text-memoir-800 transition-colors">Sign up</Link></p>
-<<<<<<< HEAD
             <Link to="/" className="block text-sm text-memoir-400 hover:text-memoir-600 mt-2">← Back to app (use without login)</Link>
-=======
->>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
           </div>
         </div>
       </div>
