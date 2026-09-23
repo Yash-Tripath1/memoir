@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { ArrowLeft, Star, Image as ImageIcon, MessagesSquare, Search, Shield, ImageOff, StarOff } from 'lucide-react';
+=======
+import { ArrowLeft, Star, Image as ImageIcon, MessagesSquare, Search, Shield, ImageOff } from 'lucide-react';
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 import { useAuth } from '../context/AuthContext';
 import { getChats, getMessages, getStarredMessages, saveStarredMessages, generateId } from '../lib/storage';
 import { formatMessageTime, cx } from '../lib/utils';
 
 const PAGE_SIZE = 80;
 
+<<<<<<< HEAD
 // Helper: blob URL -> dataURL for persistent starring
 async function blobToDataURL(blobUrl) {
   try {
@@ -23,6 +28,8 @@ async function blobToDataURL(blobUrl) {
   }
 }
 
+=======
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 export default function ChatView() {
   const { chatId } = useParams();
   const navigate = useNavigate();
@@ -39,7 +46,10 @@ export default function ChatView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [imgErrors, setImgErrors] = useState(new Set());
+<<<<<<< HEAD
   const [starring, setStarring] = useState(null);
+=======
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 
   useEffect(() => {
     let mounted = true;
@@ -48,7 +58,11 @@ export default function ChatView() {
         const chats = await getChats(user.id);
         const found = chats.find(c => c.id === chatId);
         if (!found) {
+<<<<<<< HEAD
           console.warn('[ChatView] Chat not found in memory', chatId);
+=======
+          console.warn('[ChatView] Chat not found in memory, may have been cleared for privacy', chatId);
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
           navigate('/', { state: { privacy: true } });
           return;
         }
@@ -93,6 +107,7 @@ export default function ChatView() {
   }, [hasMore, filteredMessages.length]);
 
   const toggleStar = async (msg) => {
+<<<<<<< HEAD
     setStarring(msg.id);
     try {
       const updated = [...starredMessages];
@@ -134,6 +149,30 @@ export default function ChatView() {
     } finally {
       setStarring(null);
     }
+=======
+    const updated = [...starredMessages];
+    const existingIdx = updated.findIndex(s => s.messageId === msg.id);
+    if (existingIdx >= 0) updated.splice(existingIdx, 1);
+    else {
+      updated.push({
+        id: generateId(),
+        messageId: msg.id,
+        chatId,
+        contactName: chat?.contactName || 'Unknown',
+        sender: msg.sender,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        isMine: msg.isMine,
+        mediaUrl: msg.mediaUrl,
+        mediaType: msg.mediaType,
+        isMedia: msg.isMedia,
+        starredAt: new Date().toISOString(),
+      });
+    }
+    setStarredMessages(updated);
+    await saveStarredMessages(user.id, updated);
+    setStarredIds(new Set(updated.map(s => s.messageId)));
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
   };
 
   const mediaMessages = useMemo(() => allMessages.filter(m => m.isMedia || m.mediaUrl), [allMessages]);
@@ -143,7 +182,11 @@ export default function ChatView() {
       <div className="max-w-2xl mx-auto flex flex-col h-[calc(100vh-4rem)] items-center justify-center">
         <div className="w-6 h-6 border-2 border-memoir-200 border-t-memoir-500 rounded-full animate-spin mb-3" />
         <p className="text-sm text-memoir-400">Loading messages from RAM...</p>
+<<<<<<< HEAD
         <p className="text-xs text-emerald-600 mt-1">🔒 Privacy: memory-only • Images starrable</p>
+=======
+        <p className="text-xs text-emerald-600 mt-1">🔒 Privacy: memory-only</p>
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
       </div>
     );
   }
@@ -159,18 +202,30 @@ export default function ChatView() {
         <div className={cx('w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold', chat.avatarColor || 'bg-memoir-400')}>{chat.avatarLetter || '?'}</div>
         <div className="flex-1 min-w-0">
           <h2 className="font-medium text-memoir-800 truncate flex items-center gap-1.5">{chat.contactName}<span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><Shield size={8} />RAM</span></h2>
+<<<<<<< HEAD
           <p className="text-xs text-memoir-400">{allMessages.length} msgs • {mediaMessages.length} media • {starredIds.size} starred</p>
         </div>
         <div className="flex items-center bg-memoir-50 rounded-xl p-1">
           <button onClick={() => setActiveTab('chat')} className={cx('px-3 py-1.5 rounded-lg text-xs font-medium transition-all', activeTab === 'chat' ? 'bg-white text-memoir-700 shadow-sm' : 'text-memoir-400')}><MessagesSquare size={14} className="inline mr-1" />Chat</button>
           <button onClick={() => setActiveTab('media')} className={cx('px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1', activeTab === 'media' ? 'bg-white text-memoir-700 shadow-sm' : 'text-memoir-400')}><ImageIcon size={14} />Media ({mediaMessages.length})</button>
+=======
+          <p className="text-xs text-memoir-400">{allMessages.length} messages • {searchQuery ? `${filteredMessages.length} filtered` : `${visibleMessages.length} shown`} • Privacy</p>
+        </div>
+        <div className="flex items-center bg-memoir-50 rounded-xl p-1">
+          <button onClick={() => setActiveTab('chat')} className={cx('px-3 py-1.5 rounded-lg text-xs font-medium transition-all', activeTab === 'chat' ? 'bg-white text-memoir-700 shadow-sm' : 'text-memoir-400')}><MessagesSquare size={14} className="inline mr-1" />Chat</button>
+          <button onClick={() => setActiveTab('media')} className={cx('px-3 py-1.5 rounded-lg text-xs font-medium transition-all', activeTab === 'media' ? 'bg-white text-memoir-700 shadow-sm' : 'text-memoir-400')}><ImageIcon size={14} className="inline mr-1" />Media</button>
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
         </div>
       </div>
 
       {activeTab === 'chat' && (
         <div className="px-4 py-2 bg-white/50 border-b border-memoir-100 flex items-center gap-2">
           <Search size={16} className="text-memoir-300" />
+<<<<<<< HEAD
           <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE); }} placeholder="Search conversation (RAM)..." className="flex-1 bg-transparent text-sm placeholder:text-memoir-300 focus:outline-none" />
+=======
+          <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE); }} placeholder="Search in conversation (RAM only)..." className="flex-1 bg-transparent text-sm placeholder:text-memoir-300 focus:outline-none" />
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
           {searchQuery && <button onClick={() => setSearchQuery('')} className="text-xs text-memoir-400 hover:text-memoir-600">Clear</button>}
         </div>
       )}
@@ -179,16 +234,25 @@ export default function ChatView() {
         <div ref={listRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-4 space-y-2" style={{ backgroundColor: 'var(--bg-primary)' }}>
           {hasMore && !searchQuery && (
             <div className="text-center py-2">
+<<<<<<< HEAD
               <button onClick={() => setVisibleCount(c => Math.min(c + PAGE_SIZE, filteredMessages.length))} className="text-xs text-memoir-400 hover:text-memoir-600 bg-white px-3 py-1 rounded-full border border-memoir-100">Load {Math.min(PAGE_SIZE, filteredMessages.length - visibleMessages.length)} earlier • {filteredMessages.length - visibleMessages.length} left</button>
             </div>
           )}
           {filteredMessages.length === 0 ? (
             <div className="text-center py-12"><p className="text-memoir-400">{searchQuery ? `No results for "${searchQuery}"` : 'No messages'}</p></div>
+=======
+              <button onClick={() => setVisibleCount(c => Math.min(c + PAGE_SIZE, filteredMessages.length))} className="text-xs text-memoir-400 hover:text-memoir-600 bg-white px-3 py-1 rounded-full border border-memoir-100">Load {Math.min(PAGE_SIZE, filteredMessages.length - visibleMessages.length)} earlier • {filteredMessages.length - visibleMessages.length} remaining</button>
+            </div>
+          )}
+          {filteredMessages.length === 0 ? (
+            <div className="text-center py-12"><p className="text-memoir-400">{searchQuery ? `No results for "${searchQuery}"` : 'No messages found'}</p></div>
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
           ) : (
             visibleMessages.map((msg, i) => (
               <div key={msg.id} className={cx('flex', msg.isMine ? 'justify-end' : 'justify-start')}>
                 <div className={cx('max-w-[80%] px-4 py-2.5 relative group', msg.isMine ? 'chat-bubble-mine' : 'chat-bubble-other')}>
                   {!msg.isMine && visibleMessages[i-1]?.sender !== msg.sender && <p className={cx('text-xs font-medium mb-1', msg.isMine ? 'text-memoir-100' : 'text-memoir-400')}>{msg.sender}</p>}
+<<<<<<< HEAD
                   
                   {msg.mediaUrl && !imgErrors.has(msg.id) && (
                     <div className="mb-2 rounded-lg overflow-hidden relative group/img">
@@ -211,6 +275,20 @@ export default function ChatView() {
                   
                   <button onClick={() => toggleStar(msg)} className={cx('absolute -right-2 -top-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white shadow-md border border-memoir-100', starredIds.has(msg.id) && 'opacity-100 text-amber-400', starring === msg.id && 'opacity-100')}>
                     {starring === msg.id ? <div className="w-3 h-3 border-2 border-amber-200 border-t-amber-500 rounded-full animate-spin" /> : <Star size={14} className={starredIds.has(msg.id) ? 'fill-amber-400 text-amber-400' : 'text-memoir-300'} />}
+=======
+                  {msg.mediaUrl && !imgErrors.has(msg.id) && (
+                    <div className="mb-2 rounded-lg overflow-hidden">
+                      <img src={msg.mediaUrl} alt="Media" className="max-w-full rounded-lg cursor-pointer" loading="eager" onError={() => setImgErrors(prev => new Set([...prev, msg.id]))} onClick={() => window.open(msg.mediaUrl, '_blank')} />
+                    </div>
+                  )}
+                  {msg.mediaUrl && imgErrors.has(msg.id) && (
+                    <div className="mb-2 p-2 bg-neutral-100 rounded-lg flex items-center gap-1.5 text-[11px] text-neutral-500"><ImageOff size={12} />Image expired (privacy: RAM only, refresh clears)</div>
+                  )}
+                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                  <p className={cx('text-[10px] mt-1 text-right', msg.isMine ? 'text-white/60' : 'text-memoir-300')}>{formatMessageTime(msg.timestamp)}</p>
+                  <button onClick={() => toggleStar(msg)} className={cx('absolute -right-2 -top-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 bg-white shadow-md border border-memoir-100', starredIds.has(msg.id) && 'opacity-100 text-amber-400')}>
+                    <Star size={14} className={starredIds.has(msg.id) ? 'fill-amber-400 text-amber-400' : 'text-memoir-300'} />
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
                   </button>
                 </div>
               </div>
@@ -220,6 +298,7 @@ export default function ChatView() {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto px-4 py-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
+<<<<<<< HEAD
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 flex gap-2">
             <Star size={16} className="text-blue-500 shrink-0 mt-0.5" />
             <div>
@@ -251,6 +330,15 @@ export default function ChatView() {
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-1"><ImageOff size={20} className="text-memoir-300" /><span className="text-[9px] text-memoir-400">Expired</span></div>
                   )}
+=======
+          {mediaMessages.length === 0 ? (
+            <div className="text-center py-12"><ImageIcon size={40} className="mx-auto text-memoir-200 mb-3" /><p className="text-memoir-400">No media found</p><p className="text-xs text-emerald-600 mt-1">Media lives in RAM only for privacy</p></div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {mediaMessages.map((msg) => (
+                <div key={msg.id} className="aspect-square rounded-xl overflow-hidden bg-memoir-50 cursor-pointer group relative">
+                  {msg.mediaUrl && !imgErrors.has(msg.id) ? <img src={msg.mediaUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="eager" onError={() => setImgErrors(prev => new Set([...prev, msg.id]))} onClick={() => window.open(msg.mediaUrl, '_blank')} /> : <div className="w-full h-full flex flex-col items-center justify-center gap-1"><ImageOff size={20} className="text-memoir-300" /><span className="text-[9px] text-memoir-400">Expired</span></div>}
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
                 </div>
               ))}
             </div>

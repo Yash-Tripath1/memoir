@@ -2,7 +2,11 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import {
   getUsers, saveUsers, getCurrentUser, setCurrentUser, clearCurrentUser,
   getUsersSync, getCurrentUserSync, saveUsersSync, setCurrentUserSync, clearCurrentUserSync,
+<<<<<<< HEAD
   generateId, getScrapbooks, saveScrapbooks
+=======
+  generateId
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
 } from '../lib/storage';
 import { hashPassword, verifyPassword, generateGuestId, sanitizeInput } from '../lib/crypto';
 
@@ -13,6 +17,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+<<<<<<< HEAD
     const init = async () => {
       // Fast sync boot
       const saved = getCurrentUserSync();
@@ -48,10 +53,24 @@ export function AuthProvider({ children }) {
       setLoading(false);
     };
     init();
+=======
+    // Fast sync boot, then async verify migration
+    const saved = getCurrentUserSync();
+    if (saved) setUser(saved);
+    // Async check for IDB migrated user
+    (async () => {
+      try {
+        const asyncUser = await getCurrentUser();
+        if (asyncUser && !saved) setUser(asyncUser);
+      } catch {}
+      setLoading(false);
+    })();
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
   }, []);
 
   const login = async (email, password) => {
     const users = await getUsers();
+<<<<<<< HEAD
     const found = users.find(u => u.email === email);
     if (!found) throw new Error('Invalid email or password');
 
@@ -86,6 +105,11 @@ export function AuthProvider({ children }) {
     }
 
     const userData = { id: found.id, email: found.email, name: found.name, isGuest: false };
+=======
+    const found = users.find(u => u.email === email && u.password === password);
+    if (!found) throw new Error('Invalid email or password');
+    const userData = { id: found.id, email: found.email, name: found.name };
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
     await setCurrentUser(userData);
     setCurrentUserSync(userData);
     setUser(userData);
@@ -93,6 +117,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (name, email, password) => {
+<<<<<<< HEAD
     const cleanName = sanitizeInput(name);
     if (cleanName.length < 2) throw new Error('Name too short');
     if (password.length < 6) throw new Error('Password must be at least 6 characters');
@@ -125,6 +150,15 @@ export function AuthProvider({ children }) {
     }
 
     const userData = { id: newUser.id, email: newUser.email, name: newUser.name, isGuest: false };
+=======
+    const users = await getUsers();
+    if (users.find(u => u.email === email)) throw new Error('Email already registered');
+    const newUser = { id: generateId(), name, email, password };
+    const updated = [...users, newUser];
+    await saveUsers(updated);
+    saveUsersSync(updated);
+    const userData = { id: newUser.id, email: newUser.email, name: newUser.name };
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
     await setCurrentUser(userData);
     setCurrentUserSync(userData);
     setUser(userData);
@@ -132,6 +166,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+<<<<<<< HEAD
     // For guest, just create new guest (don't clear scrapbooks)
     // For real user, clear current but keep users DB
     const current = getCurrentUserSync();
@@ -189,6 +224,20 @@ export function AuthProvider({ children }) {
     setCurrentUserSync(guest);
     setUser(guest);
     return guest;
+=======
+    await clearCurrentUser();
+    clearCurrentUserSync();
+    setUser(null);
+  };
+
+  const resetPassword = async (email, newPassword) => {
+    const users = await getUsers();
+    const idx = users.findIndex(u => u.email === email);
+    if (idx === -1) throw new Error('Email not found');
+    users[idx].password = newPassword;
+    await saveUsers(users);
+    saveUsersSync(users);
+>>>>>>> a11b92ab0e6536b1f97eeee14a8ccce23998fbb8
   };
 
   return (
