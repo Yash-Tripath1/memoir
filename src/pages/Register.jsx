@@ -17,19 +17,11 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
+    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     try {
-      register(name, email, password);
+      await register(name, email, password);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -41,104 +33,38 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">📖</div>
           <h1 className="text-3xl font-display font-bold text-memoir-800">Memoir</h1>
-          <p className="text-memoir-400 mt-2">Start preserving your memories</p>
+          <p className="text-memoir-400 mt-2">Start preserving your memories • v2</p>
         </div>
-
-        {/* Form */}
         <div className="card p-8">
           <h2 className="text-xl font-semibold text-memoir-800 mb-6">Create your account</h2>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-              {error}
-            </div>
-          )}
-
+          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Full Name</label>
-              <div className="relative">
-                <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="Your name"
-                  required
-                />
-              </div>
+              <div className="relative"><User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" /><input type="text" value={name} onChange={e => setName(e.target.value)} className="input-field pl-10" placeholder="Your name" required /></div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Email</label>
-              <div className="relative">
-                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
+              <div className="relative"><Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" /><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-10" placeholder="you@example.com" required /></div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Password</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} className="input-field pl-10 pr-10" placeholder="••••••••" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
               </div>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-memoir-600 mb-1">Confirm Password</label>
-              <div className="relative">
-                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
+              <div className="relative"><Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" /><input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="input-field pl-10" placeholder="••••••••" required /></div>
             </div>
-
-            <button type="submit" className="btn-primary w-full" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+            <button type="submit" className="btn-primary w-full" disabled={loading}>{loading ? 'Creating account...' : 'Create Account'}</button>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-memoir-400">
-              Already have an account?{' '}
-              <Link to="/login" className="text-memoir-600 font-medium hover:text-memoir-800 transition-colors">
-                Sign in
-              </Link>
-            </p>
-          </div>
+          <div className="mt-6 text-center"><p className="text-sm text-memoir-400">Already have an account? <Link to="/login" className="text-memoir-600 font-medium hover:text-memoir-800 transition-colors">Sign in</Link></p></div>
         </div>
       </div>
     </div>

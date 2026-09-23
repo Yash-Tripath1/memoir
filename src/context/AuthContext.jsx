@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import {
-  getUsers, saveUsers, getCurrentUser, setCurrentUser, clearCurrentUser, generateId
+  getUsers, saveUsers, getCurrentUser, setCurrentUser, clearCurrentUser,
+  getUsersSync, getCurrentUserSync, saveUsersSync, setCurrentUserSync, clearCurrentUserSync,
+  generateId
 } from '../lib/storage';
 
 const AuthContext = createContext(null);
@@ -10,44 +12,57 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = getCurrentUser();
+    // Fast sync boot, then async verify migration
+    const saved = getCurrentUserSync();
     if (saved) setUser(saved);
-    setLoading(false);
+    // Async check for IDB migrated user
+    (async () => {
+      try {
+        const asyncUser = await getCurrentUser();
+        if (asyncUser && !saved) setUser(asyncUser);
+      } catch {}
+      setLoading(false);
+    })();
   }, []);
 
-  const login = (email, password) => {
-    const users = getUsers();
+  const login = async (email, password) => {
+    const users = await getUsers();
     const found = users.find(u => u.email === email && u.password === password);
     if (!found) throw new Error('Invalid email or password');
     const userData = { id: found.id, email: found.email, name: found.name };
-    setCurrentUser(userData);
+    await setCurrentUser(userData);
+    setCurrentUserSync(userData);
     setUser(userData);
     return userData;
   };
 
-  const register = (name, email, password) => {
-    const users = getUsers();
+  const register = async (name, email, password) => {
+    const users = await getUsers();
     if (users.find(u => u.email === email)) throw new Error('Email already registered');
     const newUser = { id: generateId(), name, email, password };
-    users.push(newUser);
-    saveUsers(users);
+    const updated = [...users, newUser];
+    await saveUsers(updated);
+    saveUsersSync(updated);
     const userData = { id: newUser.id, email: newUser.email, name: newUser.name };
-    setCurrentUser(userData);
+    await setCurrentUser(userData);
+    setCurrentUserSync(userData);
     setUser(userData);
     return userData;
   };
 
-  const logout = () => {
-    clearCurrentUser();
+  const logout = async () => {
+    await clearCurrentUser();
+    clearCurrentUserSync();
     setUser(null);
   };
 
-  const resetPassword = (email, newPassword) => {
-    const users = getUsers();
+  const resetPassword = async (email, newPassword) => {
+    const users = await getUsers();
     const idx = users.findIndex(u => u.email === email);
     if (idx === -1) throw new Error('Email not found');
     users[idx].password = newPassword;
-    saveUsers(users);
+    await saveUsers(users);
+    saveUsersSync(users);
   };
 
   return (

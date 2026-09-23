@@ -1,39 +1,51 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Upload, MessageSquare, Search, Star, Trash2, FileText
-} from 'lucide-react';
+import { Upload, Search, Trash2, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import {
-  getChats, saveChats, getMessages, saveMessages,
-  generateId
-} from '../lib/storage';
+import { getChats, saveChats, saveMessages, generateId, getStorageStats } from '../lib/storage';
 import { processChatFile, determineMyMessages } from '../lib/whatsapp-parser';
 import { getAvatarColor, getAvatarLetter, truncate, cx } from '../lib/utils';
+import PrivacyBanner from '../components/PrivacyBanner';
 
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef();
-  const [chats, setChats] = useState(() => getChats(user.id));
+  const [chats, setChats] = useState([]);
   const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [stats, setStats] = useState(null);
 
-  const filteredChats = chats.filter(c =>
-    c.contactName.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const c = await getChats(user.id);
+      if (mounted) setChats(c);
+      const s = await getStorageStats();
+      if (mounted) setStats(s);
+    })();
+    return () => { mounted = false; };
+  }, [user.id]);
+
+  const filteredChats = chats.filter(c => c.contactName.toLowerCase().includes(search.toLowerCase()));
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    if (file.size > 100 * 1024 * 1024) {
+      setError('File too large (max 100MB). Try a smaller export.');
+      return;
+    }
     setImporting(true);
     setError('');
+    setProgress(0);
     try {
-      const result = await processChatFile(file);
+      const result = await processChatFile(file, (p) => setProgress(p));
       const messages = determineMyMessages(result.messages, result.contactName);
+      if (messages.length === 0) throw new Error('No messages found. Check file format - must be WhatsApp .txt export.');
 
       const chatId = generateId();
       const newChat = {
@@ -45,145 +57,110 @@ export default function Home() {
         avatarColor: getAvatarColor(result.contactName),
         createdAt: new Date().toISOString(),
         participants: result.participants,
+        hasMedia: Object.keys(result.mediaFiles || {}).length > 0,
+        mediaCount: Object.keys(result.mediaFiles || {}).length,
       };
 
       const updatedChats = [newChat, ...chats];
       setChats(updatedChats);
-      saveChats(user.id, updatedChats);
-      saveMessages(user.id, chatId, messages);
+      await saveChats(user.id, updatedChats);
+      await saveMessages(user.id, chatId, messages);
+      setProgress(100);
+      setTimeout(() => navigate(`/chat/${chatId}`), 300);
     } catch (err) {
+      console.error(err);
       setError(err.message);
     } finally {
       setImporting(false);
+      setProgress(0);
       if (fileRef.current) fileRef.current.value = '';
     }
   };
 
-  const handleDeleteChat = (chatId) => {
+  const handleDeleteChat = async (chatId) => {
     const updated = chats.filter(c => c.id !== chatId);
     setChats(updated);
-    saveChats(user.id, updated);
-    localStorage.removeItem('memoir_messages_' + user.id + '_' + chatId);
+    await saveChats(user.id, updated);
   };
 
   return (
     <div className="page-container">
-      {/* Header */}
+      <PrivacyBanner />
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-memoir-800">Your Chats</h1>
-          <p className="text-memoir-400 text-sm mt-1">
-            Import WhatsApp conversations to preserve
+          <p className="text-memoir-400 text-sm mt-1 flex items-center gap-1.5">
+            <Shield size={12} className="text-emerald-500" /> Memory-only • Privacy-safe • Disappears on refresh
           </p>
         </div>
+        {stats && (
+          <div className="hidden sm:block text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+            🔒 RAM only • {stats.lsSizeKB}KB LS
+          </div>
+        )}
       </div>
 
-      {/* Import & Search */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search chats..."
-            className="input-field pl-10"
-          />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search chats..." className="input-field pl-10" />
         </div>
-        <input
-          type="file"
-          accept=".txt,.zip"
-          onChange={handleImport}
-          ref={fileRef}
-          className="hidden"
-        />
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="btn-primary flex items-center justify-center gap-2"
-          disabled={importing}
-        >
+        <input type="file" accept=".txt,.zip" onChange={handleImport} ref={fileRef} className="hidden" />
+        <button onClick={() => fileRef.current?.click()} className="btn-primary flex items-center justify-center gap-2 min-w-[140px]" disabled={importing}>
           <Upload size={18} />
-          {importing ? 'Importing...' : 'Import Chat'}
+          {importing ? `${progress}%` : 'Import Chat'}
         </button>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">{error}</div>}
 
       {importing && (
-        <div className="mb-4 p-4 card flex items-center gap-3">
-          <div className="animate-spin text-memoir-500">
-            <Upload size={20} />
+        <div className="mb-4 p-4 card">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="animate-spin w-5 h-5 border-2 border-memoir-200 border-t-memoir-500 rounded-full" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-memoir-700">Parsing in RAM (never saved to disk)...</p>
+              <p className="text-xs text-memoir-400">Supports 12+ date formats, zip with media, privacy-safe</p>
+            </div>
+            <span className="text-sm font-mono text-memoir-500">{progress}%</span>
           </div>
-          <div>
-            <p className="text-sm font-medium text-memoir-700">Importing chat...</p>
-            <p className="text-xs text-memoir-400">This may take a moment for large files</p>
+          <div className="w-full h-1.5 bg-memoir-100 rounded-full overflow-hidden">
+            <div className="h-full bg-memoir-500 transition-all duration-200" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}
 
-      {/* Chat List */}
       {filteredChats.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-6xl mb-4">💬</div>
-          <h3 className="text-lg font-medium text-memoir-600 mb-2">
-            {chats.length === 0 ? 'No chats yet' : 'No matching chats'}
-          </h3>
-          <p className="text-memoir-400 text-sm mb-6">
-            {chats.length === 0
-              ? 'Import your first WhatsApp chat to get started'
-              : 'Try a different search term'}
+          <h3 className="text-lg font-medium text-memoir-600 mb-2">{chats.length === 0 ? 'No chats in memory' : 'No matching chats'}</h3>
+          <p className="text-memoir-400 text-sm mb-2 max-w-md mx-auto">
+            {chats.length === 0 ? 'Import a WhatsApp .txt or .zip. Chats live only in RAM for privacy and vanish on refresh. Scrapbooks you create are saved locally.' : 'Try a different search term'}
           </p>
+          <p className="text-xs text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded-full mb-6">🔒 Privacy: no chat ever touches disk or cloud</p>
           {chats.length === 0 && (
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="btn-primary"
-            >
-              <Upload size={18} className="inline mr-2" />
-              Import Your First Chat
-            </button>
+            <div>
+              <button onClick={() => fileRef.current?.click()} className="btn-primary"><Upload size={18} className="inline mr-2" />Import Your First Chat</button>
+            </div>
           )}
         </div>
       ) : (
         <div className="space-y-2">
           {filteredChats.map((chat, i) => (
-            <motion.div
-              key={chat.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="card p-4 flex items-center gap-4 cursor-pointer group"
-              onClick={() => navigate(`/chat/${chat.id}`)}
-            >
-              <div className={cx(
-                'w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shrink-0',
-                chat.avatarColor
-              )}>
-                {chat.avatarLetter}
-              </div>
+            <motion.div key={chat.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="card p-4 flex items-center gap-4 cursor-pointer group" onClick={() => navigate(`/chat/${chat.id}`)}>
+              <div className={cx('w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg shrink-0', chat.avatarColor)}>{chat.avatarLetter}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <h3 className="font-medium text-memoir-800 truncate">{chat.contactName}</h3>
-                  <span className="text-xs text-memoir-300 ml-2 shrink-0">
-                    {chat.messageCount} messages
+                  <span className="text-xs text-memoir-300 ml-2 shrink-0 flex items-center gap-2">
+                    {chat.hasMedia && <span className="bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full text-[10px]">📷 {chat.mediaCount}</span>}
+                    {chat.messageCount} messages • RAM
                   </span>
                 </div>
-                <p className="text-sm text-memoir-400 truncate mt-1">
-                  {chat.lastMessage || 'No messages'}
-                </p>
+                <p className="text-sm text-memoir-400 truncate mt-1">{chat.lastMessage || 'No messages'}</p>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (confirm('Delete this chat?')) handleDeleteChat(chat.id);
-                }}
-                className="p-2 text-memoir-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-              >
-                <Trash2 size={16} />
-              </button>
+              <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete this chat from memory?')) handleDeleteChat(chat.id); }} className="p-2 text-memoir-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
             </motion.div>
           ))}
         </div>
