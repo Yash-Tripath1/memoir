@@ -17,7 +17,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      login(email, password);
+      await login(email, password);
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -29,14 +29,12 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-bounce">📖</div>
+          <div className="text-6xl mb-4">📖</div>
           <h1 className="text-3xl font-display font-bold text-memoir-800">Memoir</h1>
-          <p className="text-memoir-400 mt-2">Your memories, beautifully preserved</p>
+          <p className="text-memoir-400 mt-2">Your memories, beautifully preserved • v2 • IndexedDB</p>
         </div>
 
-        {/* Form */}
         <div className="card p-8">
           <h2 className="text-xl font-semibold text-memoir-800 mb-6">Welcome back</h2>
 
@@ -51,14 +49,7 @@ export default function Login() {
               <label className="block text-sm font-medium text-memoir-600 mb-1">Email</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="input-field pl-10"
-                  placeholder="you@example.com"
-                  required
-                />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="input-field pl-10" placeholder="you@example.com" required />
               </div>
             </div>
 
@@ -66,19 +57,8 @@ export default function Login() {
               <label className="block text-sm font-medium text-memoir-600 mb-1">Password</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-memoir-300" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="input-field pl-10 pr-10"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500"
-                >
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} className="input-field pl-10 pr-10" placeholder="••••••••" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-memoir-300 hover:text-memoir-500">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -90,15 +70,8 @@ export default function Login() {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <Link to="/forgot-password" className="text-sm text-memoir-400 hover:text-memoir-600 transition-colors">
-              Forgot password?
-            </Link>
-            <p className="text-sm text-memoir-400">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-memoir-600 font-medium hover:text-memoir-800 transition-colors">
-                Sign up
-              </Link>
-            </p>
+            <Link to="/forgot-password" className="text-sm text-memoir-400 hover:text-memoir-600 transition-colors">Forgot password?</Link>
+            <p className="text-sm text-memoir-400">Don't have an account? <Link to="/register" className="text-memoir-600 font-medium hover:text-memoir-800 transition-colors">Sign up</Link></p>
           </div>
         </div>
       </div>

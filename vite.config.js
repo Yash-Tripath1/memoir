@@ -5,6 +5,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: true
+    host: '0.0.0.0',
+    hmr: { clientPort: 443 },
+    cors: true,
+    allowedHosts: true,
+    headers: { 'X-Frame-Options': 'ALLOWALL' }
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 5173
   }
 })
